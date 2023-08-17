@@ -23,8 +23,14 @@ class Model(object):
         self.rotate = rotate
         self.scale = scale
 
+        self.SetShaders(None, None)
+
     def LoadTexture(self, textureName):
         self.texture = Texture(textureName)
+
+    def SetShaders(self, vertexShader, fragmentShader):
+        self.vertexShader= vertexShader
+        self.fragmentShader= fragmentShader
 
 class Renderer(object):
     def __init__(self, width, height):
@@ -45,12 +51,16 @@ class Renderer(object):
 
         self.activeTexture = None
 
+        self.activeModelMatrix= None
+        self.forward= (0,0,0)
+        self.camPos= (0,0,0)
+
         self.glViewport(0, 0, self.width, self.height)
 
         self.glCamMatrix()       
         self.glProjectionMatrix() 
 
-        self.directionalLight = (0,-1,0)
+        self.directionalLight = (1,0, -0.5)
 
     def glClearColor(self, r, g, b):
         # Establecer el color de fondo
@@ -123,7 +133,11 @@ class Renderer(object):
                                                              texCoords= texCoords,
                                                              normals= normals,
                                                              dLight= self.directionalLight,
-                                                             bCoords= bCoords)
+                                                             bCoords= bCoords,
+                                                             camMatrix= self.camMatrix,
+                                                             modelMatrix= self.activeModelMatrix,
+                                                             dView= self.forward,
+                                                             camPos= self.camPos)
 
                                 self.glPoint(x, y, color(colorP[0], colorP[1], colorP[2]))
                                 
@@ -186,18 +200,19 @@ class Renderer(object):
     def glLookAt(self, camPos= (0,0,0), eyePos=(0,0,0)):
         worldUp= (0,1,0)
 
-        forward= ml.vector_subtraction(camPos, eyePos)
-        forward= ml.normalize_vector(forward)
+        self.camPos= camPos
+        self.forward= ml.vector_subtraction(self.camPos, eyePos)
+        self.forward= ml.normalize_vector(self.forward)
 
-        right = ml.cross_product(worldUp, forward)
+        right = ml.cross_product(worldUp, self.forward)
         right= ml.normalize_vector(right)
 
-        up = ml.cross_product(forward, right)
+        up = ml.cross_product(self.forward, right)
         up= ml.normalize_vector(up)
 
-        self.camMatrix= [[right[0],up[0],forward[0],camPos[0]],
-                         [right[1],up[1],forward[1],camPos[1]],
-                         [right[2],up[2],forward[2],camPos[2]],
+        self.camMatrix= [[right[0],up[0],self.forward[0],self.camPos[0]],
+                         [right[1],up[1],self.forward[1],self.camPos[1]],
+                         [right[2],up[2],self.forward[2],self.camPos[2]],
                          [0,0,0,1]]
         
         self.viewMatrix = ml.matrix_inverse(self.camMatrix)
@@ -322,12 +337,8 @@ class Renderer(object):
 
                 limit += 1
 
-    def glLoadModel(self, filename, textureName, translate = (0,0,0), rotate = (0,0,0), scale = (1,1,1)):
-        # Se crea el modelo y le asignamos su textura
-        model = Model(filename, translate, rotate, scale)
-        model.LoadTexture(textureName)
-
-        # Se agrega el modelo al listado de objetos
+    def glAddModule(self, model):
+        # Se agrega el modelo al listado de objetos 
         self.objects.append( model )
 
     def glRender(self):
@@ -338,10 +349,16 @@ class Renderer(object):
 
         # Para cada modelo en nuestro listado de objetos
         for model in self.objects:
+            transformedVerts = []
+            texCoords = []
+            normals= []
+
+            self.vertexShader= model.vertexShader
+            self.fragmentShader= model.fragmentShader
 
             # Establecemos la textura y la matriz del modelo
             self.activeTexture = model.texture
-            mMat = self.glModelMatrix(model.translate, model.rotate, model.scale)
+            self.activeModelMatrix = self.glModelMatrix(model.translate, model.rotate, model.scale)
 
             # Para cada cara del modelo
             for face in model.faces:
@@ -361,23 +378,23 @@ class Renderer(object):
                 # necesarias para usarlas dentro del shader.
                 if self.vertexShader:
                     v0 = self.vertexShader(v0, 
-                                           modelMatrix = mMat,
+                                           modelMatrix = self.activeModelMatrix,
                                            viewMatrix= self.viewMatrix,
                                            projectionMatrix= self.projectionMatrix,
                                            vpMatrix= self.vpMatrix)
                     v1 = self.vertexShader(v1, 
-                                           modelMatrix = mMat,
+                                           modelMatrix = self.activeModelMatrix,
                                            viewMatrix= self.viewMatrix,
                                            projectionMatrix= self.projectionMatrix,
                                            vpMatrix= self.vpMatrix)
                     v2 = self.vertexShader(v2, 
-                                           modelMatrix = mMat,
+                                           modelMatrix = self.activeModelMatrix,
                                            viewMatrix= self.viewMatrix,
                                            projectionMatrix= self.projectionMatrix,
                                            vpMatrix= self.vpMatrix)
                     if vertCount == 4:
                         v3 = self.vertexShader(v3,
-                                               modelMatrix = mMat,
+                                               modelMatrix = self.activeModelMatrix,
                                                viewMatrix= self.viewMatrix,
                                                projectionMatrix= self.projectionMatrix,
                                                vpMatrix= self.vpMatrix)

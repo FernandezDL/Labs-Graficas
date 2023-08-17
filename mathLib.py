@@ -143,3 +143,23 @@ def vector_subtraction(vector_a, vector_b):
     
     result = [a - b for a, b in zip(vector_a, vector_b)]
     return result
+
+def vector_addition(vector_a, vector_b):
+    if len(vector_a) != len(vector_b):
+        raise ValueError("Los vectores tienen que ser del mismo tamaño")
+    
+    result = [a + b for a, b in zip(vector_a, vector_b)]
+    return result
+
+def reflect(incident, normal):
+    dot_product_result = 2 * dot_product(incident, normal)
+    reflected = [incident[i] - dot_product_result * normal[i] for i in range(len(incident))]
+    return reflected
+
+def interpolate_colors(color1, color2, t):
+    r1, g1, b1 = color1
+    r2, g2, b2 = color2
+    r = int((1 - t) * r1 + t * r2)
+    g = int((1 - t) * g1 + t * g2)
+    b = int((1 - t) * b1 + t * b2)
+    return r, g, b

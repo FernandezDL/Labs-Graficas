@@ -19,8 +19,6 @@ def vertexShader(vertex, **kwargs):
     vt3= ml.multi4x4matrix(vt2, modelMatrix)
     vt = ml.multimatrixvec(vt3, vt)
 
-    """ vt = vt.tolist()[0] """
-
     vt = [vt[0]/vt[3],
           vt[1]/vt[3],
           vt[2]/vt[3]]
@@ -39,43 +37,13 @@ def fragmentShader(**kwargs):
     else:
         color = (1,1,1)
 
-
     return color
 
 def flatShader(**kwargs):
     dLight = kwargs["dLight"]
-    normal= kwargs["normals"]
-    texCoords = kwargs["texCoords"]
-    texture = kwargs["texture"]
-
-    b= 1.0
-    g= 1.0
-    r= 1.0
-
-    if texture != None:
-        textureColor = texture.getColor(texCoords[0], texCoords[1])    
-        b *= textureColor[2]
-        g *= textureColor[1]
-        r *= textureColor[0]
-
-    """dLight= np.array(dLight)"""
-    intensity= ml.dot_product(normal, -dLight)
-    
-    b *= intensity
-    g *= intensity
-    r *= intensity
-
-    if intensity > 0:
-        return r, g, b
-
-    else:
-        return [0,0,0]
-    
-def gouradShader(**kwargs):
+    nA, nB, nC= kwargs["normals"]
     texture= kwargs["texture"]
     tA, tB, tC= kwargs["texCoords"]
-    nA, nB, nC= kwargs["normals"]
-    dLight = kwargs["dLight"]
     u, v, w= kwargs["bCoords"]
 
     b= 1.0
@@ -94,13 +62,59 @@ def gouradShader(**kwargs):
     normal= [u * nA[0] + v * nB[0] + w * nC[0],
              u * nA[1] + v * nB[1] + w * nC[1],
              u * nA[2] + v * nB[2] + w * nC[2]]
-    
-    dLight= np.array(dLight)
-    intensity= ml.dot_product(normal, -dLight)
+
+    dLightNeg=(-dLight[0], -dLight[1], -dLight[2])
+    intensity= ml.dot_product(normal, dLightNeg)
     
     b *= intensity
     g *= intensity
     r *= intensity
+
+    if intensity > 0:
+        return r, g, b
+
+    else:
+        return [0,0,0]
+    
+def gouradShader(**kwargs):
+    texture= kwargs["texture"]
+    tA, tB, tC= kwargs["texCoords"]
+    nA, nB, nC= kwargs["normals"]
+    dLight = kwargs["dLight"]
+    u, v, w= kwargs["bCoords"]
+    modelMatrix= kwargs["modelMatrix"]
+
+    b= 1.0
+    g= 1.0
+    r= 1.0
+
+    if texture != None:
+        tU= u * tA[0] + v * tB[0] + w * tC[0]
+        tV= u * tA[1] + v * tB[1] + w * tC[1]
+        
+        textureColor = texture.getColor(tU, tV)    
+        b *= textureColor[2]
+        g *= textureColor[1]
+        r *= textureColor[0]
+
+    normal= [u * nA[0] + v * nB[0] + w * nC[0],
+             u * nA[1] + v * nB[1] + w * nC[1],
+             u * nA[2] + v * nB[2] + w * nC[2],
+             0]
+    
+    normal= ml.multimatrixvec(modelMatrix, normal)
+    normal=[normal[0], normal[1], normal[2]]
+    
+    dLightNeg=(-dLight[0], -dLight[1], -dLight[2])
+    intensity= ml.dot_product(normal, dLightNeg)
+    
+    b *= intensity
+    g *= intensity
+    r *= intensity
+
+    b = min(b, 1.0)
+    g = min(g, 1.0)
+    r = min(r, 1.0)
 
     if intensity > 0:
         return r, g, b
@@ -132,8 +146,8 @@ def toonShader(**kwargs):
             u * nA[1] + v * nB[1] + w * nC[1],
             u * nA[2] + v * nB[2] + w * nC[2]]
     
-    dLight= np.array(dLight)
-    intensity= ml.dot_product(normal, -dLight)
+    dLight= (-dLight[0], -dLight[1], -dLight[2])
+    intensity= ml.dot_product(normal, dLight)
 
     if intensity <= 0.25:
         intensity= 0.2
@@ -181,8 +195,8 @@ def redShader(**kwargs):
              u * nA[1] + v * nB[1] + w * nC[1],
              u * nA[2] + v * nB[2] + w * nC[2]]
     
-    dLight= np.array(dLight)
-    intensity= ml.dot_product(normal, -dLight)
+    dLight= (-dLight[0], -dLight[1], -dLight[2])
+    intensity= ml.dot_product(normal, dLight)
     
     b *= intensity
     g *= intensity
@@ -199,67 +213,6 @@ def redShader(**kwargs):
 
     else:
         return [0,0,0]
-    
-""" def yellowGlowShader(**kwargs):
-    texture= kwargs["texture"]
-    tA, tB, tC= kwargs["texCoords"]
-    nA, nB, nC= kwargs["normals"]
-    dLight = kwargs["dLight"]
-    u, v, w= kwargs["bCoords"]
-    camMatrix= kwargs["camMatrix"]
-
-    b= 1.0
-    g= 1.0
-    r= 1.0
-
-    if texture != None:
-        tU= u * tA[0] + v * tB[0] + w * tC[0]
-        tV= u * tA[1] + v * tB[1] + w * tC[1]
-        
-        textureColor = texture.getColor(tU, tV)    
-        b *= textureColor[2]
-        g *= textureColor[1]
-        r *= textureColor[0]
-
-    normal= [u * nA[0] + v * nB[0] + w * nC[0],
-             u * nA[1] + v * nB[1] + w * nC[1],
-             u * nA[2] + v * nB[2] + w * nC[2]]
-    
-    dLight= np.array(dLight)
-    intensity= ml.dot_product(normal, -dLight)
-
-    if intensity<= 0:
-        intensity=0
-    
-    b *= intensity
-    g *= intensity
-    r *= intensity
-
-    camForward= (camMatrix.item(0,2),
-                 camMatrix.item(1,2),
-                 camMatrix.item(2,2))
-    
-    glowAmount= 1- ml.dot_product(normal, camForward)
-
-    if glowAmount<=0: 
-        glowAmount=0
-
-    yellow= (1,1,0)
-
-    b += glowAmount * yellow[2]
-    g += glowAmount * yellow[1]
-    r += glowAmount * yellow[0]
-
-    if b>=1: 
-        b=1.0
-
-    if g>=1: 
-        g=1.0
-
-    if r>=1: 
-        r=1.0
-
-    return r, g, b """
 
 def emissionShader(**kwargs):
     texture = kwargs["texture"]
@@ -290,3 +243,89 @@ def emissionShader(**kwargs):
     r = min(r, 1.0)
 
     return r, g, b
+
+def celShader(**kwargs):
+    nA, nB, nC = kwargs["normals"]
+    dLight = kwargs["dLight"]
+    bCoords = kwargs["bCoords"]
+
+    # Calcular la intensidad del brillo especular
+    specularIntensity = ml.dot_product(nA, dLight)
+
+    # Definir el número de divisiones para los tonos de sombra y luz
+    numDivisions = 150
+
+    # Calcular el rango de intensidad para cada división
+    intensityRange = 1.0 / numDivisions
+
+    # Calcular el valor de intensidad en función de la división
+    intensityLevel = int(specularIntensity / intensityRange)
+
+    # Asignar colores planos para tonos de sombra y luz
+    shadowColor = (1, 0.502, 1)
+    lightColor = (0.85, 0.0, 0.147)
+
+    # Seleccionar el color correspondiente según el nivel de intensidad
+    if intensityLevel % 2 == 0:
+        color = shadowColor
+    else:
+        color = lightColor
+
+    return color
+
+def snakeShader(**kwargs):
+    texture = kwargs["texture"]
+    tA, tB, tC = kwargs["texCoords"]
+    nA, nB, nC = kwargs["normals"]
+    dLight = kwargs["dLight"]
+    u, v, w = kwargs["bCoords"]
+    modelMatrix = kwargs["modelMatrix"]
+
+    b = 1.0
+    g = 1.0
+    r = 1.0
+
+    # Define las coordenadas del punto actual
+    x, y = u, v
+
+    # Define el umbral para la detección de líneas diagonales
+    threshold = 0.3
+
+    # Verifica si el punto está en una línea diagonal
+    if abs(x - y) < threshold:
+        return 0, 0, 0  # Devuelve color transparente
+
+    if texture is not None:
+        tU = u * tA[0] + v * tB[0] + w * tC[0]
+        tV = u * tA[1] + v * tB[1] + w * tC[1]
+
+        textureColor = texture.getColor(tU, tV)
+        b *= textureColor[2]
+        g *= textureColor[1]
+        r *= textureColor[0]
+
+    normal = [u * nA[0] + v * nB[0] + w * nC[0],
+              u * nA[1] + v * nB[1] + w * nC[1],
+              u * nA[2] + v * nB[2] + w * nC[2],
+              0]
+
+    normal = ml.multimatrixvec(modelMatrix, normal)
+    normal = [normal[0], normal[1], normal[2]]
+
+    dLightNeg = (-dLight[0], -dLight[1], -dLight[2])
+    intensity = ml.dot_product(normal, dLightNeg)
+
+    gradient_intensity = (u + v) / 2
+
+    b *= intensity * gradient_intensity
+    g *= intensity * gradient_intensity
+    r *= intensity * gradient_intensity
+
+    b = min(b, 1.0)
+    g = min(g, 1.0)
+    r = min(r, 1.0)
+
+    if intensity > 0:
+        return r, g, b
+    else:
+        return [0, 0, 0]
