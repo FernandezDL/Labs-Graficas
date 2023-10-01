@@ -1,6 +1,5 @@
-
 from math import tan, pi, atan2, acos, sqrt
-import libreria as lb
+import mathLib as ml
 
 class Intercept(object):
     def __init__(self, distance, point, normal, obj, texcoords):
@@ -24,9 +23,9 @@ class Sphere(Shape):
         super().__init__(position, material)
     
     def ray_intersect(self, orig, dir):
-        L = lb.subtract_vectors(self.position, orig) 
-        lengthL = lb.vector_norm(L)
-        tca = lb.dot_product(L, dir)
+        L = ml.vector_subtraction(self.position, orig) 
+        lengthL = ml.vector_normal(L)
+        tca = ml.dot_product(L, dir)
         d = sqrt(lengthL ** 2 - tca ** 2)
 
         if d > self.radius:
@@ -40,9 +39,9 @@ class Sphere(Shape):
         if t0 < 0:
             return None
         
-        P = lb.add_vector_scaled(orig, t0, dir)
-        normal = lb.subtract_vectors(P, self.position)
-        normal_length = lb.vector_norm(normal)
+        P = ml.add_vector_scaled(orig, t0, dir)
+        normal = ml.vector_subtraction(P, self.position)
+        normal_length = ml.vector_normal(normal)
         normal = [normal[i] / normal_length for i in range(3)]
 
         u = (atan2(normal[2], normal[0]) / (2*pi)) + 0.5

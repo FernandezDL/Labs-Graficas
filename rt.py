@@ -2,7 +2,7 @@ from math import tan, pi, atan2, acos
 import random
 import pygame
 from material import *
-import libreria as lb
+import mathLib as ml
 import numpy as np  
 MAX_RECURSION_DEPTH = 3
 
@@ -115,8 +115,8 @@ class Raytracer(object):
                     if light.lightType == "Directional":
                         lightDir = [(i*-1) for i in light.direction]
                     elif light.lightType == "Point":
-                        lightDir = lb.subtract_vectors(light.point, intercept.point)
-                        lightDir = lb.normalize_vector(lightDir)
+                        lightDir = ml.vector_subtraction(light.point, intercept.point)
+                        lightDir = ml.normalize_vector(lightDir)
                         
                     shadowIntersect = self.rtCastRay(intercept.point, lightDir, intercept.obj)
                     
@@ -126,7 +126,7 @@ class Raytracer(object):
         
         elif material.matType == REFLECTIVE:
             rayDirection = [i * -1 for i in rayDirection]
-            reflect = lb.reflect_vector(intercept.normal, rayDirection)
+            reflect = ml.reflectVector(intercept.normal, rayDirection)
             reflectIntercept = self.rtCastRay(intercept.point, reflect, intercept.obj, recursion + 1)
             reflectColor = self.rtRayColor(reflectIntercept, reflect, recursion + 1)
             
@@ -136,8 +136,8 @@ class Raytracer(object):
                     if light.lightType == "Directional":
                         lightDir = [(i*-1) for i in light.direction]
                     elif light.lightType == "Point":
-                        lightDir = lb.subtract_vectors(light.point, intercept.point)
-                        lightDir = lb.normalize_vector(lightDir)
+                        lightDir = ml.vector_subtraction(light.point, intercept.point)
+                        lightDir = ml.normalize_vector(lightDir)
                         
                     shadowIntersect = self.rtCastRay(intercept.point, lightDir, intercept.obj)
                     
@@ -145,12 +145,12 @@ class Raytracer(object):
                         specularColor = [(specularColor[i]+light.getSpecularColor(intercept, self.camPosition)[i]) for i in range(3)]
         
         elif material.matType == TRANSPARENT:
-            outside = lb.dot_product(rayDirection, intercept.normal) < 0
+            outside = ml.dot_product(rayDirection, intercept.normal) < 0
             bias = [i * 0.001 for i in intercept.normal] #intercept.normal * 0.001
 
             negrayDirection = [i * -1 for i in rayDirection]
-            reflect = lb.reflect_vector(intercept.normal, negrayDirection)
-            reflectOrig = lb.add_vectors(intercept.point, bias) if outside else lb.subtract_vectors(intercept.point, bias)
+            reflect = ml.reflectVector(intercept.normal, negrayDirection)
+            reflectOrig = ml.vector_addition(intercept.point, bias) if outside else ml.vector_subtraction(intercept.point, bias)
             reflectIntercept = self.rtCastRay(reflectOrig, reflect, None, recursion + 1)
             reflectColor = self.rtRayColor(reflectIntercept, reflect, recursion + 1)
 
@@ -160,8 +160,8 @@ class Raytracer(object):
                     if light.lightType == "Directional":
                         lightDir = [(i*-1) for i in light.direction]
                     elif light.lightType == "Point":
-                        lightDir = lb.subtract_vectors(light.point, intercept.point)
-                        lightDir = lb.normalize_vector(lightDir)
+                        lightDir = ml.vector_subtraction(light.point, intercept.point)
+                        lightDir = ml.normalize_vector(lightDir)
                         
                     shadowIntersect = self.rtCastRay(intercept.point, lightDir, intercept.obj)
                     
@@ -169,16 +169,16 @@ class Raytracer(object):
                         specularColor = [(specularColor[i]+light.getSpecularColor(intercept, self.camPosition)[i]) for i in range(3)]
 
 
-            if not lb.totalInternalreflection(intercept.normal, rayDirection, 1.0, material.ior):
-                refract = lb.refract_vector(intercept.normal, rayDirection, 1.0, material.ior)
-                refractOrig = lb.subtract_vectors(intercept.point, bias) if outside else lb.add_vectors(intercept.point, bias)
+            if not ml.totalInternalreflection(intercept.normal, rayDirection, 1.0, material.ior):
+                refract = ml.refract_vector(intercept.normal, rayDirection, 1.0, material.ior)
+                refractOrig = ml.vector_subtraction(intercept.point, bias) if outside else ml.vector_addition(intercept.point, bias)
                 refractIntercept = self.rtCastRay(refractOrig, refract, None, recursion + 1)
                 refractColor = self.rtRayColor(refractIntercept, refract, recursion + 1)
 
-                Kr, Kt = lb.fresnel(intercept.normal, rayDirection, 1.0, material.ior)
+                Kr, Kt = ml.fresnel(intercept.normal, rayDirection, 1.0, material.ior)
 
-                reflectColor = lb.multiply_vector_scalar(reflectColor, Kr)
-                refractColor = lb.multiply_vector_scalar(refractColor, Kt)
+                reflectColor = ml.multiply_vector_scalar(reflectColor, Kr)
+                refractColor = ml.multiply_vector_scalar(refractColor, Kt)
 
 
         lightColor = [(ambientColor[i]+diffuseColor[i]+specularColor[i]+reflectColor[i]+refractColor[i]) for i in range(3)]  
@@ -201,7 +201,7 @@ class Raytracer(object):
                 pY*=self.topEdge
                 
                 direction = (pX,pY,-self.nearplane)
-                direction = lb.normalize_vector(direction)
+                direction = ml.normalize_vector(direction)
                 
                 intercept = self.rtCastRay(self.camPosition, direction)
                 rayColor = self.rtRayColor(intercept, direction)
@@ -223,7 +223,7 @@ class Raytracer(object):
         #             # direction = (Px, Py, -self.nearplane)
         #             # direction = direction / np.linalg.norm(direction) #Normalizar
         #             direction = (Px, Py, -self.nearplane)
-        #             direction = lb.normalize_vector(direction)
+        #             direction = ml.normalize_vector(direction)
 
         #             intercept =  self.rtCastRay(self.camPosition, direction)
 
@@ -248,8 +248,8 @@ class Raytracer(object):
         #                         elif light.lightType == 'Point':
         #                             # lightDir = np.subtract(light.point, intercept.point)
         #                             # lightDir = lightDir / np.linalg.norm(lightDir)
-        #                             lightDir = lb.subtract_vectors(light.point, intercept.point)
-        #                             lightDir = lb.normalize_vector(lightDir)
+        #                             lightDir = ml.vector_subtraction(light.point, intercept.point)
+        #                             lightDir = ml.normalize_vector(lightDir)
                                     
         #                         shadowIntersect = self.rtCastRay(intercept.point, lightDir, intercept.obj)
 

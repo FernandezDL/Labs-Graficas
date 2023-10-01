@@ -39,6 +39,12 @@ def add_scalar_array(scalar, array):
 
     return tuple(result)
 
+def add_vector_scaled(v1, scalar, v2):
+    return [v1[i] + scalar * v2[i] for i in range(3)]
+
+def multiply_vector_scalar(v, scalar):
+    return [scalar * v[i] for i in range(3)]
+
 #Producto cruz de dos vectores
 def cross_product(vector_a, vector_b):
     if len(vector_a) != 3 or len(vector_b) != 3:
@@ -199,8 +205,8 @@ def refract_vector(normal, incident, n1, n2):
     n = n1 / n2
 
     escalar = (1 - n**2 * (1 - c1**2)) ** 0.5
-    v1 = multiply_scalar_array(add_scalar_array(incident, c1, normal), n) 
-    v2 =  multiply_scalar_array(normal, escalar)
+    v1 = multiply_vector_scalar(add_vector_scaled(incident, c1, normal), n) 
+    v2 =  multiply_vector_scalar(normal, escalar)
     T = vector_subtraction(v1, v2)
     T =  normalize_vector(T)
     return T
@@ -222,3 +228,6 @@ def fresnel(normal, incident, n1, n2):
     Kr = (F1 + F2) / 2
     Kt = 1 - Kr
     return Kr, Kt
+
+def add_vector_scaled(v1, scalar, v2):
+    return [v1[i] + scalar * v2[i] for i in range(3)]

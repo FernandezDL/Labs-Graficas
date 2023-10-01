@@ -1,5 +1,4 @@
-
-import libreria as lb
+import mathLib as ml
 
 class Light(object):
     def __init__(self, intensity = 1, color = (1,1,1), lightType = "None"):
@@ -24,14 +23,14 @@ class AmbientLight(Light):
 
 class DirectionalLight(Light):
     def __init__(self, direction = (0, -1, 0),intensity=1, color=(1, 1, 1)):
-        self.direction = lb.normalize_vector(direction)
+        self.direction = ml.normalize_vector(direction)
         super().__init__(intensity, color, "Directional")
 
     def getDiffuseColor(self, intercept):
 
         dir = [(i * -1) for i in self.direction]
 
-        intensity = lb.dot_product(intercept.normal, dir) * self.intensity
+        intensity = ml.dot_product(intercept.normal, dir) * self.intensity
         intensity = max(0, min(1,intensity))
         intensity *= 1 - intercept.obj.material.Ks
 
@@ -42,12 +41,12 @@ class DirectionalLight(Light):
     def getSpecularColor(self, intercept, viewPos):
         
         dir = [(i * -1) for i in self.direction]
-        reflect = lb.reflect_vector(intercept.normal, dir)
+        reflect = ml.reflectVector(intercept.normal, dir)
 
         viewDir = [viewPos[i] - intercept.point[i] for i in range(3)]
-        viewDir = lb.normalize_vector(viewDir)
+        viewDir = ml.normalize_vector(viewDir)
 
-        specIntensity = max(0, lb.dot_product(viewDir, reflect)) ** intercept.obj.material.spec
+        specIntensity = max(0, ml.dot_product(viewDir, reflect)) ** intercept.obj.material.spec
         specIntensity *= intercept.obj.material.Ks
         specIntensity *= self.intensity
 
@@ -61,11 +60,11 @@ class PointLight(Light):
         super().__init__(intensity, color, "Point")
 
     def getDiffuseColor(self, intercept):
-        dir = lb.subtract_vectors(self.point, intercept.point)
-        R = lb.vector_norm(dir)
-        dir = lb.normalize_vector(dir)
+        dir = ml.vector_subtraction(self.point, intercept.point)
+        R = ml.vector_normal(dir)
+        dir = ml.normalize_vector(dir)
 
-        intensity = lb.dot_product(intercept.normal, dir) * self.intensity
+        intensity = ml.dot_product(intercept.normal, dir) * self.intensity
         intensity *= 1 - intercept.obj.material.Ks
 
         if R != 0:
@@ -76,16 +75,16 @@ class PointLight(Light):
         return [(i * intensity) for i in self.color]
     
     def getSpecularColor(self, intercept, viewPos):
-        dir = lb.subtract_vectors(self.point, intercept.point)
-        R = lb.vector_norm(dir)
-        dir = lb.normalize_vector(dir)
+        dir = ml.vector_subtraction(self.point, intercept.point)
+        R = ml.vector_normal(dir)
+        dir = ml.normalize_vector(dir)
 
-        reflect = lb.reflect_vector(intercept.normal, dir)
+        reflect = ml.reflectVector(intercept.normal, dir)
 
-        viewDir = lb.subtract_vectors(viewPos, intercept.point)
-        viewDir = lb.normalize_vector(viewDir)
+        viewDir = ml.vector_subtraction(viewPos, intercept.point)
+        viewDir = ml.normalize_vector(viewDir)
 
-        specIntensity = max(0, lb.dot_product(viewDir, reflect)) ** intercept.obj.material.spec
+        specIntensity = max(0, ml.dot_product(viewDir, reflect)) ** intercept.obj.material.spec
         specIntensity *= intercept.obj.material.Ks
         specIntensity *= self.intensity
 

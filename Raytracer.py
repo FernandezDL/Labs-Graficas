@@ -7,7 +7,7 @@ from lights import *
 from material import *
 
 width = 512
-height = 512
+height = 250
 
 pygame.init()
 
@@ -15,30 +15,40 @@ screen = pygame.display.set_mode((width, height), pygame.DOUBLEBUF | pygame.HWAC
 screen.set_alpha(None)
 
 rt = Raytracer(screen)
-rt.envMap = pygame.image.load("images/hamiltonStage.jpg")
-rt.rtClearColor(0.27,0.36,0.52)
+rt.envMap = pygame.image.load("images/hamStage.jpg")
+rt.rtClearColor(0.7,0.5,0.7)
 
 flowTexture = pygame.image.load("images/flow.jpg")
+cakeTexture= pygame.image.load("images/cake.jpg")
 
 brick = Material(diffuse=(1,0.4,0.4), spec = 8,  Ks = 0.01)
 grass = Material(diffuse=(0.4,1,0.4), spec = 32,  Ks = 0.1)
 water = Material(diffuse=(0.4,0.4,1), spec = 256, Ks = 0.2)
+wood = Material(diffuse=(0.6, 0.3, 0.1), spec=16, Ks=0.05)
+cake= Material(texture=cakeTexture)
 
 mirror = Material(diffuse=(0.9,0.9,0.9), spec = 64, Ks = 0.2, matType = REFLECTIVE)
 blueMirror = Material(diffuse=(0.4,0.4,0.9), spec = 32, Ks = 0.15, matType = REFLECTIVE)
 colorFlow = Material(texture = flowTexture)
 reflectFlow = Material(texture = flowTexture, spec = 64, Ks = 0.1, matType= REFLECTIVE)
+waterWithReflection = Material(diffuse=(0.4, 0.4, 1), spec=128, Ks=0.2, matType=REFLECTIVE)
 
 glass = Material(diffuse=(0.9,0.9,0.9), spec = 64, Ks = 0.15, ior = 1.5, matType = TRANSPARENT)
 diamond = Material(diffuse=(0.9,0.9,0.9), spec = 64, Ks = 0.2, ior = 2.417, matType = TRANSPARENT)
+marble = Material(diffuse=(0.8, 0.8, 0.8), spec=128, Ks=0.8, matType=TRANSPARENT, ior=1.5)
+dirtyGlass = Material(diffuse=(0.7, 0.7, 0.7), spec=32, Ks=0.05, ior=1.5, matType=TRANSPARENT)
 
-# rt.scene.append(Sphere(position=(-2,0,-7), radius = 1.5, material = reflectFlow))
-# rt.scene.append(Sphere(position=(2,0,-7), radius = 2, material = colorFlow))
-# rt.scene.append(Sphere(position=(0,-1,-5), radius = 0.5, material = mirror))
-rt.scene.append(Sphere(position=(-1,0,-5), radius = 1, material = glass))
-rt.scene.append(Sphere(position=(1,0,-5), radius = 0.7, material = diamond))
-rt.scene.append(Sphere(position=(0,1,-8), radius = 1, material = brick))
+#Esferas opacas
+rt.scene.append(Sphere(position=(-4, 1.5, -5), radius=1, material=wood))
+rt.scene.append(Sphere(position=(-4,-1.5, -5), radius = 1, material = cake))
 
+#Esferas transparentes
+rt.scene.append(Sphere(position=(0, 1.5, -5), radius=1, material=glass))
+rt.scene.append(Sphere(position=(0, -1.5, -5), radius=1, material=dirtyGlass))
+
+#Esferas reflectivas
+rt.scene.append(Sphere(position=(4, 1.5, -5), radius=1, material=mirror))
+rt.scene.append(Sphere(position=(4, -1.5, -5), radius=1, material=waterWithReflection))
 
 #Luces
 rt.lights.append(AmbientLight(intensity=0.1))
