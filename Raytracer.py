@@ -18,20 +18,25 @@ rt = Raytracer(screen)
 rt.rtClearColor(0.7,0.5,0.7)
 rt.envMap = pygame.image.load("images/bikiniBottom.jpg")
 
-cakeTexture= pygame.image.load("images/cake.jpg")
+jellyFishTexture= pygame.image.load("images/jellyFish.jpg")
 
-brick = Material(diffuse=(1,0.4,0.4), spec = 8,  Ks = 0.01)
-cake= Material(texture=cakeTexture)
-mirror = Material(diffuse=(0.9,0.9,0.9), spec = 64, Ks = 0.2, matType = REFLECTIVE)
-blueMirror = Material(diffuse=(0.4,0.4,0.9), spec = 32, Ks = 0.15, matType = REFLECTIVE)
-marble_polished = Material(diffuse=(0.8, 0.8, 0.8), spec=128, Ks=0.5)
-concrete = Material(diffuse=(0.7, 0.7, 0.7), spec=16, Ks=0.2)
-concrete_dark = Material(diffuse=(0.6, 0.6, 0.6), spec=16, Ks=0.2)
-drywall = Material(diffuse=(0.9, 0.9, 0.9), spec=16, Ks=0.1)
+jellyFish= Material(texture=jellyFishTexture)
+greenMirror = Material(diffuse=(0.4,0.9,0.4), spec = 32, Ks = 0.15, matType = REFLECTIVE)
+dirtyGlass = Material(diffuse=(0.7, 0.7, 0.7), spec=32, Ks=0.05, ior=1.5, matType=TRANSPARENT)
 
-#Cilindros
-rt.scene.append(Cylinder(position=(0.5,-1,-1), radius = 0.1, height=0.2, material = brick)) #Derecha
-rt.scene.append(Cylinder(position=(-0.5,0.1,-1), radius = 0.1, height=0.2, material = concrete)) #Izquierda
+
+#Triangulos
+#Superficie transparente
+rt.scene.append(Triangle(vertices= [(0,-1,-3), (0,1,-3), (-2,2,-4)], material=dirtyGlass)) #Izquierda
+rt.scene.append(Triangle(vertices=[(0,-1,-3), (0,1,-3), (2,2,-4)], material=dirtyGlass)) #Derecha
+rt.scene.append(Triangle(vertices=[(0,1,-3), (2,2,-4), (-2,2,-4)], material=dirtyGlass)) #Tope
+
+#Superficie opaca
+rt.scene.append(Triangle(vertices=[(-4, -2, -5), (-3, 0, -5), (-1.5, -1, -5)], material= jellyFish)) 
+
+#Superficie reflectiva
+rt.scene.append(Triangle(vertices= [(4.2, -2.5, -5.7), (3, -2, -6), (4, 1, -6)], material=greenMirror)) #Izquierda
+rt.scene.append(Triangle(vertices=[(4.2, -2.5, -5.7), (5.1, -2, -6), (4, 1, -6)], material=greenMirror)) #Derecha
 
 #Luces
 rt.lights.append(AmbientLight(intensity=1))

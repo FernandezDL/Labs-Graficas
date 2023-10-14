@@ -290,3 +290,67 @@ class Cylinder(Sphere):
         else:
             # Ambas soluciones están fuera de la altura del cilindro
             return None
+
+
+class Triangle(Shape):
+    def __init__(self, vertices, material):
+        self.vertices = vertices
+        #super().__init__(position, material)
+        v0 = ml.vector_subtraction(self.vertices[1], self.vertices[0])
+        v1 = ml.vector_subtraction(self.vertices[2],self.vertices[0])
+        self.normal = ml.normalize_vector(ml.cross_product(v0,v1))
+
+        x = (vertices[0][0] + vertices[1][0]+vertices[2][0])/3
+        y = (vertices[0][1] + vertices[1][1]+vertices[2][1])/3
+        z = (vertices[0][2] + vertices[1][2]+vertices[2][2])/3
+
+        super().__init__((x,y,z), material)
+
+    def ray_intersect(self, orig, dir):
+        denom = ml.dot_product(dir, self.normal)
+                
+        if abs(denom)<=0.0001:
+            return None
+        
+        d = -1 * ml.dot_product(self.normal, self.vertices[0])
+        num = -1 * (ml.dot_product(self.normal, orig) + d)
+
+        t = num/denom 
+
+        if t < 0:
+            return None
+        
+        P = ml.vector_addition(orig, ml.multiply_scalar_array(t,dir))
+
+        #edge 0
+        edge0 = ml.vector_subtraction(self.vertices[1],self.vertices[0]) #v1 - v0; 
+        vp0 = ml.vector_subtraction(P,self.vertices[0]) #Vec3f vp0 = P - v0;
+        C = ml.cross_product(edge0,vp0)
+        
+        if ml.dot_product(self.normal,C)<0: 
+            return None
+        
+        #edge 1
+        edge1 = ml.vector_subtraction(self.vertices[2], self.vertices[1])    #Vec3f edge1 = v2 - v1; 
+        vp1 = ml.vector_subtraction(P, self.vertices[1])    #Vec3f vp1 = P - v1;
+        C = ml.cross_product(edge1,vp1);
+        
+        if ml.dot_product(self.normal, C) < 0:    
+            return None
+    
+        #edge 2
+        edge2 = ml.vector_subtraction(self.vertices[0],self.vertices[2]) #v0 - v2; 
+        vp2 = ml.vector_subtraction(P,self.vertices[2]) #Vec3f vp2 = P - v2;
+        C = ml.cross_product(edge2,vp2);
+        
+        if ml.dot_product(self.normal, C) < 0:   
+            return None 
+        
+        u,v,w = ml.barycentricCoords(self.vertices[0], self.vertices[1], self.vertices[2], P)
+
+        
+        return Intercept(distance=t,
+                         point=P,
+                         normal=self.normal,
+                         texcoords=(u,v),
+                         obj=self)  
