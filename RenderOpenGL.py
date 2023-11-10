@@ -16,7 +16,6 @@ clock= pygame.time.Clock()
 rend= Renderer(screen)
 rend.setShader(vertex_shader, fragment_shader)
 
-
 obj= rend.loadModel(filename= "models/turtle.obj", 
                     texture="textures/turtle.jpg", 
                     position = (0,0, -6),
@@ -60,6 +59,15 @@ while isRunning:
 
     elif keys[K_2]:
         rend.setShader(vertex_shader, pie_shader)
+    
+    elif keys[K_3]:
+        rend.setShader(vertex_shader, siren_shader)
+
+    elif keys[K_4]:
+        rend.setShader(vertex_shader, glitch_shader)
+
+    elif keys[K_5]:
+        rend.setShader(vertex_shader, mixColors_shader)
 
     obj.rotation.x += 45 * deltaTime
 

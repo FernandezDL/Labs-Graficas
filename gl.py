@@ -3,6 +3,7 @@ from obj import Obj
 from model import Model
 from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram, compileShader
+from glfw import get_framebuffer_size
 
 class Renderer(object):
     def __init__(self, screen):
@@ -137,10 +138,7 @@ class Renderer(object):
 
             glUniform1f(glGetUniformLocation(self.activeShader, "time"),
                                              self.elapsedTime)
-
-            """ glUniform3fv(glGetUniformLocation(self.activeShader, "dirLight"),
-                                              1, glm.value_ptr(self.dirLight)) """
-
+                             
         for obj in self.scene:
             if self.activeShader is not None:
                 glUniformMatrix4fv(glGetUniformLocation(self.activeShader, "modelMatrix"),
