@@ -16,21 +16,6 @@ clock= pygame.time.Clock()
 rend= Renderer(screen)
 rend.setShader(vertex_shader, fragment_shader)
 
-#                 POSICIONES         U, V            NORMALS
-""" triangleData= [-0.5, -0.5, 0.0,   0.0, 0.0,     0.0, 0.0, 1.0,
-               -0.5,  0.5, 0.0,   0.0, 1.0,     0.0, 0.0, 1.0,
-                0.5, -0.5, 0.0,   1.0, 0.0,     0.0, 0.0, 1.0,
-                
-               -0.5,  0.5, 0.0,   0.0, 1.0,     0.0, 0.0, 1.0,
-                0.5,  0.5, 0.0,   1.0, 1.0,     0.0, 0.0, 1.0,
-                0.5, -0.5, 0.0,   1.0, 0.0,     0.0, 0.0, 1.0]
-
-triangleModel = Model(triangleData)
-triangleModel.loadTexture("textures/flores.jpg")
-triangleModel.position.z = -5
-triangleModel.scale = glm.vec3(2,2,2)
-
-rend.scene.append(triangleModel) """
 
 obj= rend.loadModel(filename= "models/turtle.obj", 
                     texture="textures/turtle.jpg", 
@@ -69,6 +54,12 @@ while isRunning:
          
     elif keys[K_q]:
         rend.camPosition.z += 5 * deltaTime
+
+    if keys[K_1]:
+        rend.setShader(vertex_shader, fragment_shader)
+
+    elif keys[K_2]:
+        rend.setShader(vertex_shader, pie_shader)
 
     obj.rotation.x += 45 * deltaTime
 
